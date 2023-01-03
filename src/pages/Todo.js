@@ -37,14 +37,28 @@ const Todo = () => {
 
   const deleteClick = useCallback(
     (id) => {
-      // 클릭된 ID 와 다른 요소들만 걸러서 새로운 배열 생성
-      const nowTodo = todoData.filter((item) => item.id !== id);
+      if (window.confirm('삭제하시겠습니까?')) {
+        let body = {
+          id: id,
+        };
+        axios
+          .post('/api/post/delete', body)
+          .then((res) => {
+            console.log(res);
+            // 클릭된 ID 와 다른 요소들만 걸러서 새로운 배열 생성
+            const nowTodo = todoData.filter((item) => item.id !== id);
+            // 목록을 갱신 한다
+            setTodoData(nowTodo);
+          })
+          .catch();
+      }
+
       // console.log("클릭", nowTodo);
-      // 목록을 갱신 한다
+
       //axios를 이용해서 mongoDB 삭제 진행
-      setTodoData(nowTodo);
+
       //로컬에 저장(DB)예정
-      localStorage.setItem('todoData', JSON.stringify(nowTodo));
+      // localStorage.setItem('todoData', JSON.stringify(nowTodo));
     },
     [todoData]
   );
@@ -72,6 +86,7 @@ const Todo = () => {
     // 그래서 [addTodo] 배열로 감싸 줌
     // 기존 할 일을 destructyring ( ...다 뜯어버리고) 복사본 만들고 새로운 addTodo 추가
     //axios를 이용해서 MongDb에 항목 추가
+
     axios
       .post('/api/post/submit', { ...addTodo })
       .then((res) => {
@@ -93,10 +108,18 @@ const Todo = () => {
   };
 
   const deleteAllClick = () => {
-    //axios를 이용해서 MongDB 목록 비워줌
-    setTodoData([]);
-    // 자료를 지운다(DB 초기화) 지금은 그냥 날리지만 원래 DB날리면 큰일스
-    localStorage.clear();
+    if (window.confirm('진짜 삭제하시겠습니까?')) {
+      //axios를 이용해서 MongDB 목록 비워줌
+      axios
+        .post('/api/post/deleteall')
+        .then(() => {
+          setTodoData([]);
+        })
+        .catch((err) => console.log(err));
+
+      // 자료를 지운다(DB 초기화) 지금은 그냥 날리지만 원래 DB날리면 큰일스
+      // localStorage.clear();
+    }
   };
   return (
     <div className="flex  justify-center w-full h-screen">

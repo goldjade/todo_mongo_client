@@ -1,4 +1,7 @@
-import React, { useState } from "react";
+/** @format */
+
+import axios from 'axios';
+import React, { useState } from 'react';
 
 const ListItem = React.memo(({ item, todoData, setTodoData, deleteClick }) => {
   //   console.log("ListItem Rendering...");
@@ -32,23 +35,38 @@ const ListItem = React.memo(({ item, todoData, setTodoData, deleteClick }) => {
         // }else{
         //   item.completed = true;
         // }
+        //할일목록의 값을 변경 !(부정연산자)반대값으로 변경한다.
         item.completed = !item.completed;
       }
       return item;
     });
-    //axios를 통해 MongoDB complete 업데이트 
-    setTodoData(updateTodo);
+    //axios를 통해 MongoDB complete 업데이트
+    let body = {
+      id: todoId,
+      completed: item.completed, //item은 프랍스로 넘겨받은 값 업데이트
+    };
+    //then:서버에서 회신(응답이 왔을 때) catch : 서번에서 응답이 없을 때
+    axios
+      .post('/api/post/updatetoggle', body)
+      .then((response) => {
+        // console.log(response);
+        setTodoData(updateTodo, body);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
     // 로컬에 저장(DB 저장)
-    localStorage.setItem("todoData", JSON.stringify(updateTodo));
+    // localStorage.setItem("todoData", JSON.stringify(updateTodo));
   };
   //  현재 item.id 에 해당하는 것만 업데이트한다.
   const todoId = item.id;
   const updateTitle = () => {
     // 공백 문자열 제거 추가
     let str = editedTitle;
-    str = str.replace(/^\s+|\s+$/gm, "");
+    str = str.replace(/^\s+|\s+$/gm, '');
     if (str.length === 0) {
-      alert("내용을 입력하세요.");
+      alert('내용을 입력하세요.');
       setEditedTitle(item.title);
       return;
     }
@@ -60,13 +78,27 @@ const ListItem = React.memo(({ item, todoData, setTodoData, deleteClick }) => {
       }
       return item;
     });
+
     // 데이터 갱신
-    //axios를 이용해서 MongDB 타이틀 업데이트
-    setTodoData(tempTodo);
+    // axios 를 이용해서 MongoDB 타이틀업데이트
+    let body = {
+      id: todoId,
+      title: editedTitle,
+    };
+    axios
+      .post('/api/post/updatetitle', body)
+      .then((response) => {
+        // 응답 결과 출력
+        console.log(response.data);
+        setTodoData(tempTodo);
+        // 목록창으로 이동
+        setIsEditing(false);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
     // 로컬에 저장(DB 저장)
-    localStorage.setItem("todoData", JSON.stringify(tempTodo));
-    // 목록창으로 이동
-    setIsEditing(false);
+    // localStorage.setItem("todoData", JSON.stringify(tempTodo));
   };
 
   if (isEditing) {
@@ -100,8 +132,8 @@ const ListItem = React.memo(({ item, todoData, setTodoData, deleteClick }) => {
             type="checkbox"
             defaultChecked={item.completed}
             onChange={() => toggleClick(item.id)}
-          />{" "}
-          <span className={item.completed ? "line-through" : "none"}>
+          />{' '}
+          <span className={item.completed ? 'line-through' : 'none'}>
             {item.title}
           </span>
         </div>
