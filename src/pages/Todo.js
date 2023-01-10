@@ -1,9 +1,19 @@
 /** @format */
 
 import React, { useCallback, useEffect, useState } from 'react';
+//1 login 여부 파악
+import { useSelector } from 'react-redux';
+
 import axios from 'axios';
 import Form from '../components/Form';
 import List from '../components/List';
+import { useNavigate } from 'react-router';
+//React-Bootstrap
+import Dropdown from 'react-bootstrap/Dropdown';
+import DropdownButton from 'react-bootstrap/DropdownButton';
+// import Spinner from 'react-bootstrap/Spinner';
+import Loading from '../components/Loading';
+// import{Dropdown, DropdownButton }from 'react-bootstrap\';
 
 //로컬 스토리지의 내용을 읽어온다
 //mongoDB에서 목록을 읽어온다
@@ -18,20 +28,58 @@ const Todo = () => {
   // const [todoData, setTodoData] = useState([initTodo]);
   const [todoData, setTodoData] = useState([]);
   const [todoValue, setTodoValue] = useState('');
-  //axios를 이용해서 서버에 API 호출
+  //로딩창 관련
+  const [loading, setLoading] = useState(false);
+
+  //2 로그인 상태 파악
+  const navigate = useNavigate();
+
+  const user = useSelector((state) => state.user);
+  console.log('user', user);
+
   useEffect(() => {
+    if (user.accessToken === '') {
+      //로그인이 안된 경우
+      alert('로그인을 해주세요');
+      navigate('/login');
+    } else {
+      //로그인이 된 경우
+    }
+  }, [user]);
+
+  //목록 정렬 기능
+  const [sort, setSort] = useState('최신글');
+  useEffect(() => {
+    getList();
+  }, [sort]);
+
+  //axios를 이용해서 서버에 API 호출
+
+  //전체 목록 호출 메서드
+  const getList = () => {
+    //로딩창 보여주기
+    setLoading(true);
+    let body = {
+      sort: sort,
+    };
     axios
-      .post('/api/post/list')
+      .post('/api/post/list', body)
       .then((response) => {
         // console.log(response.data);
         //초기 할일세팅
         if (response.data.success) {
           setTodoData(response.data.initTodo);
         }
+        //로딩창 숨기기
+        setLoading(false);
       })
       .catch((error) => {
         console.log(error);
       });
+  };
+
+  useEffect(() => {
+    getList();
     //초기데이터를 컴퍼넌트가 마운트 될때 한번 실행한다.
   }, []);
 
@@ -41,6 +89,7 @@ const Todo = () => {
         let body = {
           id: id,
         };
+        setLoading(true);
         axios
           .post('/api/post/delete', body)
           .then((res) => {
@@ -49,7 +98,9 @@ const Todo = () => {
             const nowTodo = todoData.filter((item) => item.id !== id);
             // 목록을 갱신 한다
             setTodoData(nowTodo);
+            setLoading(false);
           })
+
           .catch();
       }
 
@@ -80,6 +131,8 @@ const Todo = () => {
       id: Date.now(), //id 값은 배열.map의 key로 활용 예정 unique 값을 만들려고 시간을 넣음
       title: todoValue, //할일 입력창의 내용을 추가
       completed: false, //할 일이 추가 될때는 완료하지 않았으므로 false로 초기화
+      // 1. DB저장 : server/model/TodoModel schema 업에이트 (objectID 찾아 전송)
+      uid: user.uid, // 여러명의 사용자 구분 용도
     };
     // 새로운 할 일을 일단복사하고 복사된 배열에 추가해서 업데이트
     // todoData 는 원래 [배열 이였는데] addTodosms 객체로 들어가서 에러가남
@@ -92,11 +145,13 @@ const Todo = () => {
       .then((res) => {
         console.log(res.data);
         if (res.data.success) {
-          setTodoData([...todoData, addTodo]);
+          // setTodoData([...todoData, addTodo]);
           // 새로운 todo를 추가 했으므로 내용입력창의 글자를 초기화
           setTodoValue('');
           //로컬에 저장(DB)예정
           // localStorage.setItem('todoData', JSON.stringify([...todoData, addTodo]));
+          //목록 재 호출
+          getList();
           alert('할일이 등록되었습니다');
         } else {
           alert('할일 등록이 실패했습니다');
@@ -108,7 +163,7 @@ const Todo = () => {
   };
 
   const deleteAllClick = () => {
-    if (window.confirm('진짜 삭제하시겠습니까?')) {
+    if (window.confirm('전체 목록을 삭제합니다.')) {
       //axios를 이용해서 MongDB 목록 비워줌
       axios
         .post('/api/post/deleteall')
@@ -121,6 +176,7 @@ const Todo = () => {
       // localStorage.clear();
     }
   };
+
   return (
     <div className="flex  justify-center w-full h-screen">
       <div className="w-full p-6 m-4 bg-white shadow">
@@ -128,6 +184,15 @@ const Todo = () => {
           <h1>할일 목록</h1>
           <button onClick={deleteAllClick}>Delete All</button>
         </div>
+        {/* 옵션창 */}
+        <DropdownButton title={sort} variant="outline-secondary">
+          <Dropdown.Item onClick={() => setSort('최신글')}>
+            최신글
+          </Dropdown.Item>
+          <Dropdown.Item onClick={() => setSort('과거순')}>
+            과거순
+          </Dropdown.Item>
+        </DropdownButton>
         <List
           todoData={todoData}
           setTodoData={setTodoData}
@@ -139,6 +204,8 @@ const Todo = () => {
           setTodoValue={setTodoValue}
         />
       </div>
+      {/* 로딩창 샘플 */}
+      {loading && <Loading />}
     </div>
   );
 };

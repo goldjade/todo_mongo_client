@@ -13,7 +13,7 @@ const ListItem = React.memo(({ item, todoData, setTodoData, deleteClick }) => {
   // 제목을 출력 하고 변경 하는 State
   // 편집창에는 타이틀이 먼저 작성되어야 있어야 하므로
   const [editedTitle, setEditedTitle] = useState(item.title);
-
+  // console.log('아이템', item); 리스트 목록에 author 보려고 한거임
   //   const deleteClick = (id) => {
   //     // 클릭된 ID 와 다른 요소들만 걸러서 새로운 배열 생성
   //     const nowTodo = todoData.filter((item) => item.id !== id);
@@ -101,6 +101,44 @@ const ListItem = React.memo(({ item, todoData, setTodoData, deleteClick }) => {
     // localStorage.setItem("todoData", JSON.stringify(tempTodo));
   };
 
+  const WEEKDAY = ['일', '월', '화', '수', '목', '금', '토'];
+  const showTime = (_timestamp) => {
+    const date = new Date(_timestamp);
+    let hours = date.getHours();
+    let ampm = hours >= 12 ? ' PM' : ' AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    hours = hours + 1 < 9 ? '0' + hours : hours;
+    // 분 표시
+    let minutes = date.getMinutes();
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+    //초 표시
+    let seconds = date.getSeconds();
+    seconds = seconds < 10 ? '0' + seconds : seconds;
+
+    //월 출력
+    let months = date.getMonth();
+    months = months + 1 < 9 ? '0' + (months + 1) : months + 1;
+
+    let time = date.getFullYear();
+    time += ' / ';
+    time += months;
+    time += ' / ';
+    time += date.getDate();
+    time += ' / ';
+    time += WEEKDAY[date.getDay()];
+    time += ' ';
+    time += hours;
+    time += ' : ';
+    time += minutes;
+    time += ' : ';
+    time += seconds;
+    time += ampm;
+    return time;
+    
+  // {showTime (Date.now()} 현재시간 출력
+  };
+
   if (isEditing) {
     // 편집일때 JSX 리턴
     return (
@@ -139,6 +177,7 @@ const ListItem = React.memo(({ item, todoData, setTodoData, deleteClick }) => {
         </div>
 
         <div className="items-center">
+          <span>{showTime(item.id)}</span>
           <button
             className="px-4 py-2"
             onClick={() => {
