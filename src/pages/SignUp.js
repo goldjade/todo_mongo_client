@@ -48,6 +48,7 @@ const SignUp = () => {
     setBtFlag(true);
     // firebase로 이메일과 비밀번호를 전송
     //https://firebase.google.com/docs/auth/web/start?hl=ko&authuser=3#web-version-9_1
+    //회원가입
     const createUser = firebase.auth();
     createUser
       .createUserWithEmailAndPassword(email, pw)
@@ -74,6 +75,7 @@ const SignUp = () => {
               .then((response) => {
                 // console.log(response.data);
                 if (response.data.success) {
+                  firebase.auth().signOut();
                   // 회원정보 저장 성공
                   navigate('/login');
                 } else {

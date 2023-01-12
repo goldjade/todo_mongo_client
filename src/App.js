@@ -11,6 +11,7 @@ import Home from './pages/Home';
 import About from './pages/About';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
+import UserInfo from './pages/UserInfo';
 import SignUp from './pages/SignUp';
 import Todo from './pages/Todo';
 export default function App() {
@@ -57,6 +58,7 @@ export default function App() {
           <Route path="/todo" element={<Todo />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signUp" element={<SignUp />} />
+          <Route path="/userinfo" element={<UserInfo />} />
           <Route path="/*" element={<NotFound />} />
         </Routes>
       </div>
