@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useState } from 'react';
+import Swal from "sweetalert2";
 import { useNavigate } from 'react-router-dom';
 import LoginDiv from '../styles/loginCss';
 
@@ -18,7 +19,20 @@ const Login = () => {
   const signInFunc = (event) => {
     event.preventDefault();
     if (!email) {
-      return alert('이메일을 입력하세요.');
+      // return alert('이메일을 입력하세요.');
+      return Swal.fire({
+        title: "이메일을 입력하세요.",
+        width: 600,
+        padding: "3em",
+        color: "#716add",
+        // background: "#fff url(/images/trees.png)",
+        backdrop: `
+          rgba(0,0,123,0.4)
+          url("/images/nyan-cat.gif")
+          left top
+          no-repeat
+        `,
+      });
     }
     if (!pw) {
       return alert('비밀번호를 입력하세요.');

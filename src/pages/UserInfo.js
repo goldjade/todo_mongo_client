@@ -3,16 +3,21 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SignUpDiv from '../styles/signUpCss';
+
 // firebase 기본 코드를 포함
 import firebase from '../firebase';
 import axios from 'axios';
 // user 정보 가져오기
-import { useSelector } from 'react-redux'; //////
+import { useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { loginUser, clearUser } from '../reducer/userSlice';
 
 const UserInfo = () => {
-  //사용자 정보 수정을 위해서 정보를 갖고 옴
+  // 사용자 정보 수정을 위해서 정보를 가지고 옮
+  const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
-  //firebase 사용자 정보
+
+  // firebae 사용자 인증 정보
   const fireUser = firebase.auth();
 
   const [email, setEmail] = useState('');
@@ -20,104 +25,13 @@ const UserInfo = () => {
   const [pwCheck, setPwCheck] = useState('');
 
   useEffect(() => {
-    //들어오자 마자 정보 공개
     setNickName(user.nickName);
     setEmail(user.email);
     setPw('');
     setPwCheck('');
   }, []);
 
-  // 연속버튼을 막는 변수
-  const [btFlag, setBtFlag] = useState(false);
-
   const navigate = useNavigate();
-
-  // firebase 회원가입 기능
-  // const registFunc = (e) => {
-  //   e.preventDefault();
-  //   // 각 항목을 입력했는지 체크
-  //   // 빈문자열 체크를 정규표현식으로 추후 업데이트
-  //   // 닉 네임이 빈문자열인지 체크
-  //   if (!nickName) {
-  //     return alert("닉네임을 입력하세요.");
-  //   }
-  //   if (!email) {
-  //     return alert("이메일을 입력하세요.");
-  //   }
-  //   if (!pw) {
-  //     return alert("비밀번호를 입력하세요.");
-  //   }
-  //   if (!pwCheck) {
-  //     return alert("비밀번호 확인을 입력하세요.");
-  //   }
-  //   // 비밀번호가 같은지 비교처리
-  //   if (pw !== pwCheck) {
-  //     return alert("비밀번호는 같아야 합니다.");
-  //   }
-
-  //   // 3. 닉네임 검사 요청
-  //   if (!nameCheck) {
-  //     return alert("닉네임 중복검사를 해주세요.");
-  //   }
-
-  //   // 연속 클릭 막기
-  //   setBtFlag(true);
-
-  //   // firebase 로 이메일과 비밀번호를 전송
-  //   // https://firebase.google.com/docs/auth/web/start?hl=ko&authuser=3#web-version-9_1
-  //   const createUser = firebase.auth();
-  //   createUser
-  //     .createUserWithEmailAndPassword(email, pw)
-  //     .then((userCredential) => {
-  //       // 회원가입이 된경우
-  //       const user = userCredential.user;
-  //       // console.log(user);
-  //       // 사용자 프로필의 displayName 을 업데이트
-  //       // https://firebase.google.com/docs/auth/web/manage-users
-  //       user
-  //         .updateProfile({
-  //           displayName: nickName,
-  //         })
-  //         .then(() => {
-  //           // 데이터베이로 정보를 저장한다.
-  //           // 사용자 정보를 저장한다(이메일, 닉네임, UID)
-  //           // console.log(user.displayName);
-
-  //           let body = {
-  //             email: user.email,
-  //             displayName: user.displayName,
-  //             uid: user.uid,
-  //           };
-  //           axios
-  //             .post("/api/user/register", body)
-  //             .then((response) => {
-  //               // console.log(response.data);
-  //               if (response.data.success) {
-  //                 // 회원정보 저장 성공
-  //                 navigate("/login");
-  //               } else {
-  //                 // 회원정보 저장 실패
-  //                 console.log("회원정보 저장 실패시에는 다시 저장을 도전한다.");
-  //               }
-  //             })
-  //             .catch((err) => {
-  //               console.log(err);
-  //             });
-  //         })
-  //         .catch((error) => {
-  //           // 프로필 업데이트 실패
-  //           console.log(error);
-  //         });
-  //     })
-  //     .catch((error) => {
-  //       // 연속 클릭 막기
-  //       setBtFlag(false);
-  //       // 회원가입이 실패한 경우
-  //       const errorCode = error.code;
-  //       const errorMessage = error.message;
-  //       console.log(errorCode, errorMessage);
-  //     });
-  // };
 
   // 닉네임 중복 검사
   const [nickName, setNickName] = useState('');
@@ -153,54 +67,118 @@ const UserInfo = () => {
         console.log(error);
       });
   };
-  //firebase 비밀번호 변경
-  // 닉네임 변경요청
-  const nameUpdateFn = (e) => {
-    e.preventDefault();
-    if (!nickName) {
-      return alert('닉네임을 입력하세요.');
-    }
-    // 닉네임 검사 요청
-    if (!nameCheck) {
-      return alert('닉네임 중복검사를 해주세요.');
-    }
-    //firebase에 사용자 프로필 업데이트 실행
-    fireUser.currentUser
-      .updateProfile({
-        displayName: nickName,
-      })
-      .then(() => {
-        alert('닉네임을 변경하였습니다.');
-        setNickName(nickName);
-      })
-      .catch((error) => {
-        // 로그인 실패
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.log(errorCode, errorMessage);
-      });
-  };
-  // 이메일 변경요청
-  const emailUpdateFn = (e) => {
-    e.preventDefault();
-    // 닉네임 검사 요청
-    if (!email) {
-      return alert('이메일을 입력하세요.');
-    }
 
-    fireUser.currentUser
-      .updateEmail(email)
-      .then(() => {
-        alert('이메일을 변경하였습니다.');
-        setEmail(email);
-      })
-      .catch((error) => {
-        // 로그인 실패
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.log(errorCode, errorMessage);
-      });
-  };
+// 닉네임 변경요청
+const nameUpdateFn = (e) => {
+  e.preventDefault();
+  if (!nickName) {
+    return alert("닉네임을 입력하세요.");
+  }
+  // 닉네임 검사 요청
+  if (!nameCheck) {
+    return alert("닉네임 중복검사를 해주세요.");
+  }
+  // firebase 에 사용자 프로필 업데이트 실행
+  fireUser.currentUser
+    .updateProfile({
+      displayName: nickName,
+    })
+    .then(() => {
+      alert("닉네임을 변경하였습니다.");
+      let body = {
+        email: email,
+        displayName: nickName,
+        uid: user.uid,
+      };
+      axios
+        .post("/api/user/update", body)
+        .then((response) => {
+          // 서버에 사용자 이메일을 변경한다.
+          // 변경하고 나서 dipatch 보내주는 것으로 수정
+          // 실제 사용자 화면 및 userSlice state 정보 업데이트
+          if (response.data.success) {
+            alert("정보가 업데이트 되었습니다.");
+            const userInfo = {
+              displayName: nickName,
+              uid: user.uid,
+              accessToken: user.accessToken,
+              email: email,
+            };
+            dispatch(loginUser(userInfo));
+            setNickName(nickName);
+          } else {
+            alert("정보 업데이트가 실패하였습니다.");
+          }
+        })
+        .catch((error) => {
+          // alert("서버가 불안정하게 연결하였습니다.");
+          console.log(error);
+        });
+    })
+    .catch((error) => {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      console.log(errorCode, errorMessage);
+      alert("서버가 불안정하게 연결하였습니다.\n다시 로그인 해주세요.");
+      firebase.auth().signOut();
+      dispatch(clearUser());
+      navigate("/login");
+    });
+};
+// 이메일 변경요청
+const emailUpdateFn = (e) => {
+  e.preventDefault();
+  // 닉네임 검사 요청
+  if (!email) {
+    return alert("이메일을 입력하세요.");
+  }
+
+  // firebase 이메일 변경 요청
+  fireUser.currentUser
+    .updateEmail(email)
+    .then(() => {
+      let body = {
+        email: email,
+        displayName: nickName,
+        uid: user.uid,
+      };
+      axios
+        .post("/api/user/update", body)
+        .then((response) => {
+          // 서버에 사용자 이메일을 변경한다.
+          // 변경하고 나서 dipatch 보내주는 것으로 수정
+          // 실제 사용자 화면 및 userSlice state 정보 업데이트
+          if (response.data.success) {
+            alert("정보가 업데이트 되었습니다.");
+            const userInfo = {
+              displayName: nickName,
+              uid: user.uid,
+              accessToken: user.accessToken,
+              email: email,
+            };
+            dispatch(loginUser(userInfo));
+            setEmail(email);
+          } else {
+            alert("정보 업데이트가 실패하였습니다.");
+          }
+        })
+        .catch((error) => {
+          // alert("서버가 불안정하게 연결하였습니다.");
+          console.log(error);
+        });
+    })
+    .catch((error) => {
+      // 로그인 실패
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      console.log(errorCode, errorMessage);
+      alert("서버가 불안정하게 연결하였습니다.\n다시 로그인 해주세요.");
+      firebase.auth().signOut();
+      dispatch(clearUser());
+      navigate("/login");
+    });
+};
+
   // 비밀번호 변경요청
   const passUpdateFn = (e) => {
     e.preventDefault();
@@ -214,6 +192,7 @@ const UserInfo = () => {
     if (pw !== pwCheck) {
       return alert('비밀번호는 같아야 합니다.');
     }
+    // firebase 비밀번호 변경 요청
     fireUser.currentUser
       .updatePassword(pw)
       .then(() => {
@@ -226,17 +205,21 @@ const UserInfo = () => {
         const errorCode = error.code;
         const errorMessage = error.message;
         console.log(errorCode, errorMessage);
+        alert('서버가 불안정하게 연결하였습니다.\n다시 로그인 해주세요.');
+        firebase.auth().signOut();
+        dispatch(clearUser());
+        navigate('/login');
       });
   };
   // 회원 탈퇴
   const registOutFunc = (e) => {
     e.preventDefault();
-    //firebase 회원삭제
+    // firebase 회원 삭제
     fireUser.currentUser
       .delete()
-      //사용자가 기록한 할일 전부 삭제
-      //사용자 정보도 삭제
       .then(() => {
+        // 사용자 기록 한 할일 전부 삭제
+        // 사용자 정보도 삭제
         let body = {
           uid: user.uid,
         };
@@ -246,10 +229,11 @@ const UserInfo = () => {
             if (response.data.success) {
               alert('회원 탈퇴하였습니다.');
               // 회원정보 삭제 성공
+              dispatch(clearUser());
               navigate('/login');
             } else {
               // 회원정보 삭제 실패
-              console.log('회원정보 저장 실패시에는 다시 저장을 도전한다.');
+              console.log('회원정보 삭제 실패시에는 다시 저장을 도전한다.');
             }
           })
           .catch((err) => {
@@ -326,17 +310,13 @@ const UserInfo = () => {
                 onChange={(e) => setPwCheck(e.target.value)}
               />
 
-              <button disabled={btFlag} onClick={(e) => passUpdateFn(e)}>
-                비밀번호 변경
-              </button>
+              <button onClick={(e) => passUpdateFn(e)}>비밀번호 변경</button>
             </div>
           </div>
         </form>
 
         <div className="flex justify-start">
-          <button disabled={btFlag} onClick={(e) => registOutFunc(e)}>
-            회원탈퇴
-          </button>
+          <button onClick={(e) => registOutFunc(e)}>회원탈퇴</button>
         </div>
       </SignUpDiv>
     </div>
